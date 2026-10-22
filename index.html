@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ちいかわ シーサーくじ 確率シミュレーター</title>
+<style>
+:root{--bg:#fff8f0;--card:#fff;--tx:#3d3430;--sub:#8a7b72;--ac:#ff8fab;--ac2:#7fd1c7;--bd:#f0e0d4;--bar:#ffc4d3;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#201a18;--card:#2d2523;--tx:#f5ebe4;--sub:#b5a59b;--bd:#463a36;--bar:#a64d68}}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.6 -apple-system,"Hiragino Sans","Noto Sans JP",sans-serif}
+main{max-width:720px;margin:0 auto;padding:20px 14px 80px}
+h1{font-size:1.5rem;text-align:center;margin:8px 0}h2{font-size:1.2rem;margin:0 0 10px}
+.lead{text-align:center;color:var(--sub);font-size:.9rem;margin:0 0 20px}
+section{background:var(--card);border:1px solid var(--bd);border-radius:20px;padding:18px 14px;margin:0 0 22px}
+.note{font-size:.8rem;color:var(--sub);background:var(--bg);border-radius:12px;padding:8px 12px;margin:8px 0}
+button,select,input{font:inherit;color:inherit;min-height:44px;border-radius:12px;border:1px solid var(--bd);background:var(--card);padding:6px 10px}
+input[type=number]{width:5rem}button{cursor:pointer}
+button.p{background:var(--ac);border-color:var(--ac);color:#fff;font-weight:700}
+button.on{background:var(--ac2);border-color:var(--ac2);color:#133}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}
+.pc{display:grid;grid-template-columns:76px 1fr;gap:10px;border:1px solid var(--bd);border-radius:16px;padding:10px;margin:8px 0}
+.th{width:76px;height:76px;object-fit:contain;border-radius:10px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--ac)}
+.pc input[type=text]{width:100%}.pc label{font-size:.75rem;color:var(--sub)}.pc small{color:var(--sub)}
+.sc{overflow-x:auto;margin:8px 0}table{border-collapse:collapse;width:100%;font-size:.85rem}
+td,th{border-bottom:1px solid var(--bd);padding:6px 4px;text-align:right;white-space:nowrap}th:first-child,td:first-child{text-align:left}
+.sc input{width:3.6rem;padding:4px}.bar{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:.85rem}
+.bar b{width:5.5rem;font-weight:400}.bar i{display:block;height:20px;background:var(--bar);border-radius:10px;min-width:2px}.bar.best i{background:var(--ac2)}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.cd{border:1px solid var(--bd);border-radius:14px;padding:6px;text-align:center;font-size:.75rem}
+.cd .th{width:100%;height:64px}.cd.z{opacity:.4}
+.res{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;margin:10px 0}
+.res div{text-align:center;font-size:.72rem;border:1px solid var(--bd);border-radius:12px;padding:4px}.res .th{width:100%;height:60px}
+.hi{color:#d6336c;font-weight:700}#toast{position:fixed;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom,0px));background:#c92a4a;color:#fff;padding:12px;border-radius:14px;display:none;z-index:9}
+.fb{display:inline-block;padding:8px 14px;border:1px solid var(--bd);border-radius:12px;cursor:pointer;font-size:.85rem;color:var(--tx)!important}
+textarea{width:100%;min-height:90px;border-radius:12px;border:1px solid var(--bd);background:var(--card);color:inherit;font:12px monospace}
+</style></head><body><main>
+<h1>🌺 ちいかわ シーサーくじ<br>確率シミュレーター</h1>
+<p class="lead">残り本数を自由に設定して、当たる確率を計算したり、くじを引いて試せます。</p>
+<div class="note">⚠️ 本数・確率はすべて<b>仮の設定値</b>です。公式の在庫・当選確率ではなく、店舗の実際の販売状況とも無関係です。非公式のファンサイトです。</div>
+
+<section><h2>A. 賞品一覧・設定</h2>
+<div class="row"><label>仮の総本数 <input type="number" id="tot" data-s="tot" inputmode="numeric" min="1"></label><button id="gen">確率から本数を生成</button></div>
+<div class="note" id="sumA"></div><div id="A"></div>
+<div class="note">画像はこのサイトに含まれていません。お持ちの画像を端末から選ぶと表示されます(縦横比を保ったまま表示。設定はこのブラウザ内にのみ保存され、友達のスマホとは自動共有されません)。下の書き出し/読み込みで同じ設定を共有できます。</div>
+<details><summary>設定の書き出し・読み込み(JSON)</summary><div class="row"><button id="ex">書き出し</button><button id="im">読み込み</button><button id="rs0">初期設定に戻す</button></div><textarea id="js" placeholder="ここにJSONが出ます / 貼り付けて「読み込み」"></textarea></details>
+</section>
+
+<section><h2>B. 確率計算</h2><div class="note">今の残り本数から計算します(引いたくじは戻さない場合)。残り本数を変えると、すぐ更新されます。</div><div class="row"><label>引く回数 <input type="number" id="pk" data-s="pk" inputmode="numeric" min="1"></label><span>回</span></div><div class="sc" id="pt"></div>
+<h3>外れたあとの確率</h3><div class="note">狙う賞が出ないまま何回か引いたあと、続けて引いたときの確率です(外れた分は、狙う賞以外のくじとして計算)。「引く回数」は上の欄を使います。</div><div class="row"><label>狙う賞 <select id="bt" data-s="bt"></select></label><label>すでに外れた回数 <input type="number" id="ms" data-s="ms" inputmode="numeric" min="0"></label></div><div class="sc" id="ct"></div></section>
+
+<section><h2>C. くじ引きシミュレーター</h2>
+<div class="note">ここでの抽選は引いたくじを戻さない重複なしの抽選で、残り本数はAの「残り」と連動します。リセットで初期本数に戻ります。</div>
+<div class="row"><label>狙う賞 <select id="tgt" data-s="tgt"></select></label></div>
+<div id="cards" class="cards"></div>
+<div class="row"><button data-k="1">1</button><button data-k="5">5</button><button data-k="10">10</button><button data-k="20">20</button><input type="number" id="kk" value="3" min="1" max="500" inputmode="numeric" aria-label="回数"><span>回</span></div>
+<div class="row"><button class="p" id="d1">1回ずつ引く</button><button class="p" id="dn">まとめて引く</button><button id="rs">リセット</button></div>
+<div id="res"></div>
+<details><summary>抽選履歴</summary><div id="hist"></div></details></section>
+</main><div id="toast"></div>
+<script>
+const $=s=>document.querySelector(s),G=['A','B','C','D','E'],KEY='chiikawa-kuji-v2';
+const DEF=[['A賞 超BIGぬいぐるみ','A',1],['B賞 鎧なシーサーぬいぐるみ','B',3],['C賞 お師匠ッ','C',4],['C賞 くやシーサー','C',4],['D賞 スイスイッ','D',5],['D賞 ラーメン','D',5],['E賞 スーパーアルバイター','E',13],['E賞 さたぱんびん','E',13],['E賞 お買い物','E',13],['E賞 こんなのレアで〜す','E',13],['E賞 交通整理','E',13],['E賞 がんばりま〜す！！','E',13]];
+let S,last=null,busy=false,showAll=false;
+// ---- 確率計算(UIから独立)----
+function atLeast(N,n,k){if(n<=0||N<=0)return 0;if(k>=N||N-n<k)return 1;let q=1;for(let i=0;i<k;i++)q*=(N-n-i)/(N-i);return 1-q}
+function allocate(tot,ps){const s=ps.reduce((a,b)=>a+b,0)||1,r=ps.map(p=>tot*p/s),f=r.map(Math.floor);let left=tot-f.reduce((a,b)=>a+b,0);r.map((x,i)=>[x-f[i],i]).sort((a,b)=>b[0]-a[0]).slice(0,left).forEach(([,i])=>f[i]++);return f}
+function selfTest(){const C=(n,r)=>{let v=1;for(let i=0;i<r;i++)v=v*(n-i)/(i+1);return v};const ok=[Math.abs(atLeast(100,5,3)-(1-C(95,3)/C(100,3)))<1e-12,atLeast(10,1,10)==1,Math.abs(atLeast(10,1,1)-.1)<1e-12,atLeast(10,0,5)==0,atLeast(10,8,3)==1,allocate(100,[1,3,4,4,5,5,13,13,13,13,13,13]).join()=='1,3,4,4,5,5,13,13,13,13,13,13'];return ok}
+// ---- 状態 ----
+function fresh(){S={tot:100,tgt:'p0',pr:DEF.map((d,i)=>({n:d[0],g:d[1],p:d[2],init:d[2],rem:d[2],ord:i+1,img:'',fn:''})),hist:[]}}
+const ord=()=>S.pr.map((_,i)=>i).sort((a,b)=>S.pr[a].ord-S.pr[b].ord||a-b);
+const idx=t=>t[0]=='p'?[+t.slice(1)]:S.pr.map((p,i)=>p.g==t[1]?i:-1).filter(i=>i>=0);
+const sum=a=>a.reduce((x,y)=>x+y,0),pct=x=>(x*100).toFixed(x>0&&x<.001?3:1)+'%';
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const th=i=>{const p=S.pr[i];return p.img?`<img class="th" src="${p.img}" alt="${esc(p.n)}">`:`<div class="th">${p.g}</div>`};
+const tname=t=>t[0]=='p'?S.pr[+t.slice(1)].n:t[1]+'賞のどれか';
+function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.display='none',3500)}
+let st;function save(){clearTimeout(st);st=setTimeout(()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('ブラウザに保存できませんでした(画像が大きすぎる可能性)')}},400)}
+// ---- A ----
+function buildA(){$('#tot').value=S.tot;$('#A').innerHTML=ord().map(i=>{const p=S.pr[i];return`<div class="pc">${th(i)}<div>
+<input type="text" data-a="n" data-i="${i}" value="${esc(p.n)}" maxlength="24" aria-label="賞の名前">
+<div class="row"><select data-a="g" data-i="${i}">${G.map(g=>`<option ${g==p.g?'selected':''}>${g}</option>`).join('')}</select>
+<label>順<br><input type="number" data-a="ord" data-i="${i}" value="${p.ord}" inputmode="numeric"></label>
+<label>初期<br><input type="number" data-a="init" data-i="${i}" value="${p.init}" inputmode="numeric"></label>
+<label>残り<br><input type="number" data-a="rem" data-i="${i}" value="${p.rem}" inputmode="numeric"></label></div>
+<label class="fb">画像を変更<input type="file" accept="image/*" data-img="${i}" hidden></label><br><small id="pc${i}"></small></div></div>`}).join('');buildTgt();refresh()}
+function refresh(){const N=sum(S.pr.map(p=>p.rem));$('#sumA').textContent=`初期の合計 ${sum(S.pr.map(p=>p.init))}本 / 現在の残り ${N}本(仮の設定値)`;
+S.pr.forEach((p,i)=>{const e=$('#pc'+i);if(e)e.textContent=`初期確率の設定 ${p.p}% / 現在の1回の確率 ${N?pct(p.rem/N):'0%'}${p.rem<=0?'(売り切れ)':''}`});cards();calcP();calcC()}
+function calcP(){const N=sum(S.pr.map(p=>p.rem)),k=Math.min(S.pk||10,N),f=(n)=>pct(atLeast(N,n,k));
+$('#pt').innerHTML=N?`<table><tr><th>賞(残り${N}本)</th><th>残り</th><th>1回</th><th>${k}回以内に1本以上</th></tr>${ord().map(i=>`<tr><td>${esc(S.pr[i].n)}</td><td>${S.pr[i].rem}</td><td>${pct(S.pr[i].rem/N)}</td><td>${f(S.pr[i].rem)}</td></tr>`).join('')}${G.map(g=>{const n=sum(idx('g'+g).map(i=>S.pr[i].rem));return`<tr><td><b>${g}賞のどれか</b></td><td>${n}</td><td>${pct(n/N)}</td><td>${f(n)}</td></tr>`}).join('')}</table>`:'<div class="note">残りのくじがありません</div>'}
+function calcC(){const N=sum(S.pr.map(p=>p.rem)),t=S.bt||'p0',n=sum(idx(t).map(i=>S.pr[i].rem)),m=S.ms||0;let h;
+if(m>N-n)h=`<div class="note">外れた回数が多すぎます(外れられるのは最大${Math.max(0,N-n)}回まで)</div>`;
+else{const N2=N-m,k=Math.min(S.pk||10,N2);h=`<table><tr><td>${esc(tname(t))}の残り</td><td>${n}本</td></tr><tr><td>${m}回外れたあとの残り総本数</td><td>${N2}本</td></tr><tr><td>(参考)外れる前の1回</td><td>${N?pct(n/N):'0%'}</td></tr><tr><td>次の1回で当たる確率</td><td>${N2?pct(n/N2):'0%'}</td></tr><tr><td>そこから${k}回以内に当たる確率</td><td>${pct(atLeast(N2,n,k))}</td></tr></table>`}
+$('#ct').innerHTML=h}
+function buildTgt(){$('#tgt').innerHTML=ord().map(i=>`<option value="p${i}">${esc(S.pr[i].n)}</option>`).join('')+G.map(g=>`<option value="g${g}">${g}賞のどれか(賞全体)</option>`).join('');$('#tgt').value=S.tgt;$('#bt').innerHTML=$('#tgt').innerHTML;$('#bt').value=S.bt||'p0';$('#ms').value=S.ms||0;$('#pk').value=S.pk||10}
+// ---- C ----
+function cards(){const N=sum(S.pr.map(p=>p.rem));$('#cards').innerHTML=ord().map(i=>{const p=S.pr[i];return`<div class="cd ${p.rem<=0?'z':''}">${th(i)}${esc(p.n)}<br>残り${p.rem}<br>${N?pct(p.rem/N):'0%'}</div>`}).join('')}
+function draw(k){if(busy)return;busy=true;try{let N=sum(S.pr.map(p=>p.rem));if(N<=0){toast('残りのくじがありません。リセットしてください');return}
+if(k>N){toast(`残り${N}本のため${N}回に調整しました`);k=N}
+const before=S.pr.map(p=>p.rem),ix=idx(S.tgt),ab=idx('gA').concat(idx('gB'));
+const th0={N,k,tgt:atLeast(N,sum(ix.map(i=>before[i])),k),top:atLeast(N,sum(ab.map(i=>before[i])),k),each:before.map(n=>atLeast(N,n,k))};
+const res=[];for(let j=0;j<k;j++){const cur=sum(S.pr.map(p=>p.rem));let r=Math.floor(Math.random()*cur),c=0;for(let i=0;i<S.pr.length;i++){if(r<c+S.pr[i].rem){S.pr[i].rem--;res.push(i);break}c+=S.pr[i].rem}}
+last={res,before,after:S.pr.map(p=>p.rem),th:th0,k};showAll=false;
+const cnt={};res.forEach(i=>cnt[i]=(cnt[i]||0)+1);
+S.hist.push({t:new Date().toLocaleTimeString('ja-JP'),k,s:Object.keys(cnt).map(i=>S.pr[i].n+'×'+cnt[i]).join(', ')});if(S.hist.length>100)S.hist.shift();
+refresh();showRes();save()}catch(e){toast('抽選中にエラー: '+e.message)}finally{busy=false}}
+function showRes(){if(!last){$('#res').innerHTML='';return}const{res,before,after,th:t,k}=last,cnt={};res.forEach(i=>cnt[i]=(cnt[i]||0)+1);
+const hit=g=>res.some(i=>S.pr[i].g==g),tg=idx(S.tgt),got=res.some(i=>tg.includes(i));
+const list=showAll?res:res.slice(0,20);
+$('#res').innerHTML=`<h3>🎲 今回の結果(${k}回)</h3><div class="res">${list.map((i,j)=>`<div>${j+1}回目${th(i)}${esc(S.pr[i].n)}</div>`).join('')}</div>${res.length>20?`<button id="all">${showAll?'先頭20件だけ表示':'全結果を表示'}</button>`:''}
+<table><tr><th>賞</th><th>当選数</th><th>前→後</th><th>理論:${k}回以内に1本以上</th></tr>${ord().map(i=>`<tr><td>${esc(S.pr[i].n)}</td><td class="${cnt[i]?'hi':''}">${cnt[i]||0}</td><td>${before[i]}→${after[i]}</td><td>${pct(t.each[i])}</td></tr>`).join('')}</table>
+<p>上位賞(A・B賞): <b class="${hit('A')||hit('B')?'hi':''}">${hit('A')||hit('B')?'出ました!':'出ませんでした'}</b>(理論上 ${pct(t.top)})<br>狙った「${esc(tname(S.tgt))}」: <b class="${got?'hi':''}">${got?'出ました!':'出ませんでした'}</b>(理論上 ${pct(t.tgt)})</p>
+<div class="note">理論上の確率は引く前の残り${t.N}本から計算した値、結果は今回限りのランダム抽選です。1回の結果から実際の当選率は分かりません。</div>
+<button id="sh">結果をシェア/コピー</button>`;
+$('#hist').innerHTML=S.hist.slice().reverse().map((h,i)=>`<div class="note">#${S.hist.length-i} ${h.t} ${h.k}回: ${esc(h.s)}</div>`).join('')||'<small>まだありません</small>'}
+// ---- イベント ----
+const num=(v,a,b)=>{if(v===''||isNaN(+v))return null;return Math.min(b,Math.max(a,Math.round(+v)))};
+function onIn(e){const d=e.target.dataset,v=e.target.value;let x;
+if(d.a){const p=S.pr[+d.i];if(d.a=='n')p.n=v.slice(0,24)||p.n;else if(d.a=='g')p.g=v;else{x=num(v,0,d.a=='ord'?99:9999);if(x===null)return toast('数値を入力してください');if(d.a=='init'){p.init=x;if(p.rem>x)p.rem=x}else if(d.a=='rem')p.rem=Math.min(x,p.init);else p.ord=x}}
+else if(d.s){if(d.s=='tgt'||d.s=='bt')S[d.s]=v;else{x=num(v,d.s=='ms'?0:1,9999);if(x===null)return toast('1以上の整数を入力してください');S[d.s]=x}}
+else return;refresh();save()}
+document.addEventListener('input',onIn);
+document.addEventListener('change',e=>{const d=e.target.dataset;onIn(e);if(d.a)buildA();
+if(d.img!==undefined){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const sc=Math.min(1,400/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*sc);c.height=Math.round(im.height*sc);c.getContext('2d').drawImage(im,0,0,c.width,c.height);const p=S.pr[+d.img];p.img=c.toDataURL('image/webp',.85);p.fn=f.name;buildA();save()};im.onerror=()=>toast('画像を読み込めませんでした');im.src=r.result};r.readAsDataURL(f)}
+});
+const v=e=>e.target.value;
+document.addEventListener('click',e=>{const t=e.target,d=t.dataset;
+if(d.k)$('#kk').value=d.k;
+if(t.id=='d1')draw(1);if(t.id=='dn'){const k=num($('#kk').value,1,500);k===null?toast('回数は1〜500の整数で入力してください'):draw(k)}
+if(t.id=='all'){showAll=!showAll;showRes()}
+if(t.id=='rs'&&confirm('初期本数に戻して履歴を消します。よろしいですか?')){S.pr.forEach(p=>p.rem=p.init);S.hist=[];last=null;buildA();showRes();save()}
+if(t.id=='gen'){const f=allocate(S.tot,S.pr.map(p=>p.p));S.pr.forEach((p,i)=>{p.init=p.rem=f[i]});buildA();toast('整数に丸めたため、実確率は各賞の下に表示される値になります');save()}
+if(t.id=='sh'&&last){const c={};last.res.forEach(i=>c[i]=(c[i]||0)+1);const tx='ちいかわ シーサーくじ シミュレーション(仮の設定)\n'+last.k+'回: '+Object.keys(c).map(i=>S.pr[i].n+'×'+c[i]).join(', ');(navigator.share?navigator.share({text:tx}):navigator.clipboard.writeText(tx).then(()=>toast('コピーしました'))).catch(()=>toast('共有できませんでした'))}
+if(t.id=='ex'){const o=JSON.parse(JSON.stringify(S));delete o.hist;$('#js').value=JSON.stringify(o);try{navigator.clipboard.writeText($('#js').value);toast('書き出してコピーしました')}catch(_){toast('下の欄からコピーしてください')}}
+if(t.id=='im'){try{const o=JSON.parse($('#js').value);if(!Array.isArray(o.pr)||o.pr.length!=12)throw 0;o.hist=[];S=o;last=null;syncFix();buildA();showRes();save();toast('読み込みました')}catch(_){toast('JSONの形式が正しくありません')}}
+if(t.id=='rs0'&&confirm('初期設定に戻しますか?(画像も消えます)')){fresh();last=null;buildA();showRes();save()}});
+function syncFix(){S.pr.forEach(p=>{p.init=Math.max(0,p.init|0);p.rem=Math.min(Math.max(0,p.rem|0),p.init)})}
+// ---- 起動 ----
+try{const o=JSON.parse(localStorage.getItem(KEY));if(o&&o.pr&&o.pr.length==12){S=o;syncFix()}else fresh()}catch(e){fresh()}
+if(!selfTest().every(Boolean))toast('確率計算の自己テストに失敗しました');
+buildA();showRes();
+</script></body></html>
